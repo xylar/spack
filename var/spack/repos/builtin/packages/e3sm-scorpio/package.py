@@ -74,4 +74,9 @@ class E3smScorpio(CMakePackage):
             define_from_variant("PIO_USE_MALLOC", "malloc"),
         ])
 
+        if self.compiler.name == "cce":
+            # force lowercase fortran modules
+            args.extend([
+                define("CMAKE_Fortran_FLAGS", "-em -ef")
+                ])
         return args
