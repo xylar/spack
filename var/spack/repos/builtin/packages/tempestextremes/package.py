@@ -3,14 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
-import shutil
-import glob
 from spack import *
 
 
-class Tempestextremes(MakefilePackage):
-    """ TempestExtremes is a growing collection of detection and
+class Tempestextremes(CMakePackage):
+    """TempestExtremes is a growing collection of detection and
     characterization algorithms for large climate datasets, leveraging C++ for
     rapid throughput and a command line interface that maximizes flexibility
     of each kernel. The tracking kernels in this package have been already
@@ -22,51 +19,27 @@ class Tempestextremes(MakefilePackage):
     """
 
     homepage = "https://github.com/ClimateGlobalChange/tempestextremes"
-    url = "https://github.com/ClimateGlobalChange/tempestextremes/archive/v2.2.1.tar.gz"
+    url = "https://github.com/ClimateGlobalChange/tempestextremes/archive/refs/tags/v2.3.tar.gz"
 
-    maintainers = ['xylar', 'paullric']
+    maintainers("andrewdnolan", "paullric", "xylar")
 
-    version('2.2.3', sha256='35ca4dca46dc684030c2d250551ef781faaf88a564c74aee6ec3901722c8f6e1')
-    version('2.2.2', sha256='7c4662ed1750a2e69049b358d37420946cac39a5ec78964259cff149008ac045')
-    version('2.2.1', sha256='bd3feeb187587d95a6fb94314eecd9c72c9349c6e1afac347edafe7b4d450a93')
-    version('2.2', sha256='d8fdc4a2c1b8794cb1699739e5d0119f0ed5a4eb5ab6212cfbc0215ec6110bc5')
-    version('2.1', sha256='fc31940d855297964fa091ed5da0f96c28e8a25fd237dfa660357a054600ab70')
-    version('2.0', sha256='121ed3184f51b2830a00ca37da5848553763df38afb9b970125a712440f1ead6')
+    license("BSD-2-Clause", checked_by="andrewdnolan")
 
-    variant('mpi', default=True, description='Build with MPI support')
+    version("2.4", sha256="c1be592ae5e1975c64f65025149d9c3f7b83474fcfe67ef3d5bb7206e63b4b6a")
+    version("2.3.1", sha256="eff3564a99b0711335bd4f08e3a7dcec401c56d58fe6ef2d1ae778d7f7bf04e0")
+    version("2.3", sha256="1194a3825ce7754bda6bdfc97da5390c8e37895f2a41fb2f22a480df0b777564")
+
+    variant("mpi", default=True, description="Build with MPI support")
+
+    depends_on("cxx", type="build")
 
     # Required dependencies
-    depends_on('netcdf-c')
+    depends_on("cmake@3.12:", type="build")
+    depends_on("netcdf-c")
 
     # Optional dependencies
-    depends_on('mpi', when='+mpi')
+    depends_on("mpi", when="+mpi")
 
-    # Make sure not to use special make configurations for specific systems
-    patch("system_2.2.2.patch", when="@:2.2.2")
-    patch("system_2.2.3.patch", when="@2.2.3:")
-
-    parallel = False
-
-    def edit(self, spec, prefix):
-        if '+mpi' not in spec:
-            # Configure for no MPI
-            makefile = FileFilter('mk/config.make')
-            makefile.filter('PARALLEL= MPIOMP', 'PARALLEL= NONE')
-
-        makefile = FileFilter('mk/system/default.make')
-        makefile.filter('CXX=               g\+\+',
-                        'CXX = {}'.format(os.environ['CXX']))
-        if '+mpi' in spec:
-            makefile.filter('MPICXX=            mpiCC',
-                            'MPICXX = {}'.format(spec['mpi'].mpicxx))
-
-        makefile.filter('NETCDF_ROOT =       $(NETCDF_HOME)',
-                        'NETCDF_ROOT = {}'.format(spec['netcdf-c'].prefix))
-
-    def install(self, spec, prefix):
-        bin_files = sorted(
-            glob.glob(join_path(self.build_directory, 'bin', '*')))
-
-        mkdirp(prefix.bin)
-        for bin_filename in bin_files:
-            install(bin_filename, prefix.bin)
+    def cmake_args(self):
+        args = [self.define_from_variant("ENABLE_MPI", "mpi")]
+        return args
