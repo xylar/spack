@@ -107,7 +107,7 @@ class TrilinosForAlbany(CMakePackage):
             description='Enable CGNS')
     variant('adios2',         default=False,
             description='Enable ADIOS2')
-    variant('gtest',        default=True,
+    variant('gtest',        default=False,
             description='Compile with Gtest')
     variant('hdf5',         default=True,
             description='Compile with HDF5')
@@ -436,7 +436,6 @@ class TrilinosForAlbany(CMakePackage):
             '-DTrilinos_VERBOSE_CONFIGURE:BOOL=OFF',
             '-DTrilinos_ENABLE_TESTS:BOOL=OFF',
             '-DTrilinos_ENABLE_EXAMPLES:BOOL=OFF',
-            '-DCMAKE_CXX_STANDARD=17',
             '-DBUILD_SHARED_LIBS:BOOL=%s' % (
                 'ON' if '+shared' in spec else 'OFF'),
             '-DTrilinos_ENABLE_DEBUG:BOOL=%s' % (
@@ -632,6 +631,8 @@ class TrilinosForAlbany(CMakePackage):
             '-DTPL_ENABLE_X11:BOOL=%s' % (
                 'ON' if '+x11' in spec else 'OFF'),
             '-DTrilinos_ENABLE_Gtest:BOOL=%s' % (
+                'ON' if '+gtest' in spec else 'OFF'),
+            '-D TPL_ENABLE_gtest:BOOL=%s' % (
                 'ON' if '+gtest' in spec else 'OFF'),
         ])
 
